@@ -5,10 +5,11 @@ export const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    setError(null);
     if (isSignUp) {
       const { error: signUpError } = await supabase.auth.signUp({
         email,
@@ -16,7 +17,12 @@ export const Auth = () => {
       });
       if (signUpError) {
         console.error('Error signing up:', signUpError.message);
+        setError(signUpError.message);
         return;
+      } else {
+        setIsSignUp(false);
+        setEmail('');
+        setPassword('');
       }
     } else {
       const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -25,6 +31,7 @@ export const Auth = () => {
       });
       if (signInError) {
         console.error('Error signing up:', signInError.message);
+        setError(signInError.message);
         return;
       }
     }
@@ -52,6 +59,9 @@ export const Auth = () => {
           }
           style={{ width: '100%', marginBottom: '0.5rem', padding: '0.5rem' }}
         />
+        {error && (
+          <div style={{ color: 'red', marginBottom: '0.5rem' }}>{error}</div>
+        )}
         <button
           type='submit'
           style={{ padding: '0.5rem 1rem', marginRight: '0.5rem' }}
@@ -62,6 +72,8 @@ export const Auth = () => {
       <button
         onClick={() => {
           setIsSignUp(!isSignUp);
+          setEmail('');
+          setPassword('');
         }}
         style={{ padding: '0.5rem 1rem', marginTop: '0.5rem' }}
       >
