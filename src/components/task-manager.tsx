@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { supabase } from '../supabase-client';
 import { Session } from '@supabase/supabase-js';
-
+import { TABLES, STORAGE_BUCKETS } from '../constants';
 interface Task {
   id: number;
   title: string;
@@ -19,7 +19,7 @@ function TaskManager({ session }: { session: Session }) {
 
   const fetchTasks = async () => {
     const { error, data } = await supabase
-      .from('tasks')
+      .from(TABLES.TASKS)
       .select('*')
       .order('created_at', { ascending: true });
 
@@ -33,7 +33,7 @@ function TaskManager({ session }: { session: Session }) {
 
   const deleteTask = async (id: number) => {
     setError(null);
-    const { error } = await supabase.from('tasks').delete().eq('id', id);
+    const { error } = await supabase.from(TABLES.TASKS).delete().eq('id', id);
 
     if (error) {
       setError(error.message);
@@ -45,7 +45,7 @@ function TaskManager({ session }: { session: Session }) {
   const updateTask = async (id: number) => {
     setError(null);
     const { error } = await supabase
-      .from('tasks')
+      .from(TABLES.TASKS)
       .update({ description: newDescription })
       .eq('id', id);
 
@@ -60,7 +60,7 @@ function TaskManager({ session }: { session: Session }) {
     const filePath = `${file.name}-${Date.now()}`;
 
     const { error } = await supabase.storage
-      .from('auth-tasks-images')
+      .from(STORAGE_BUCKETS)
       .upload(filePath, file);
 
     if (error) {
@@ -70,7 +70,7 @@ function TaskManager({ session }: { session: Session }) {
     }
 
     const { data } = await supabase.storage
-      .from('auth-tasks-images')
+      .from(STORAGE_BUCKETS)
       .getPublicUrl(filePath);
 
     return data.publicUrl;
@@ -85,7 +85,7 @@ function TaskManager({ session }: { session: Session }) {
     }
 
     const { error } = await supabase
-      .from('tasks')
+      .from(TABLES.TASKS)
       .insert({ ...newTask, email: session.user.email, image_url: imageUrl })
       .select()
       .single();
