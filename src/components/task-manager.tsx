@@ -112,18 +112,47 @@ function TaskManager({ session }: { session: Session }) {
 
   useEffect(() => {
     const channel = supabase.channel('tasks-channel');
-    channel
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'tasks' },
-        (payload) => {
-          const newTask = payload.new as Task;
-          setTasks((prev) => [...prev, newTask]);
-        }
-      )
-      .subscribe((status) => {
-        console.log('Subscription: ', status);
-      });
+
+    // Handle INSERT
+    channel.on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'tasks' },
+      (payload) => {
+        const newTask = payload.new as Task;
+        setTasks((prev) => [...prev, newTask]);
+      }
+    );
+
+    // Handle DELETE
+    channel.on(
+      'postgres_changes',
+      { event: 'DELETE', schema: 'public', table: 'tasks' },
+      (payload) => {
+        const deletedTask = payload.old as Task;
+        setTasks((prev) => prev.filter((task) => task.id !== deletedTask.id));
+      }
+    );
+
+    // Handle UPDATE
+    channel.on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'tasks' },
+      (payload) => {
+        const updatedTask = payload.new as Task;
+        setTasks((prev) =>
+          prev.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+        );
+      }
+    );
+
+    channel.subscribe((status) => {
+      console.log('Subscription status:', status);
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   console.log(tasks);
