@@ -6,6 +6,7 @@ export const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -21,8 +22,16 @@ export const Auth = () => {
         return;
       } else {
         setIsSignUp(false);
+        console.log('i am here');
         setEmail('');
         setPassword('');
+        setSuccessMessage(
+          'Email sent for verification. Please check your inbox.'
+        );
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 5000); // Clear message after 5 seconds
+        return;
       }
     } else {
       const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -61,6 +70,11 @@ export const Auth = () => {
         />
         {error && (
           <div style={{ color: 'red', marginBottom: '0.5rem' }}>{error}</div>
+        )}
+        {successMessage && (
+          <div style={{ color: 'green', marginBottom: '0.5rem' }}>
+            {successMessage}
+          </div>
         )}
         <button
           type='submit'
