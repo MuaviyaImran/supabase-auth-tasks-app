@@ -2,7 +2,7 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import { supabase } from '../supabase-client';
 import { Session } from '@supabase/supabase-js';
 import { STORAGE_BUCKETS } from '../constants';
-
+import { TASKS } from '../constants';
 import type { Tasks } from '../types/supabase';
 
 function TaskManager({ session }: { session: Session }) {
@@ -14,7 +14,7 @@ function TaskManager({ session }: { session: Session }) {
 
   const fetchTasks = async () => {
     const { error, data } = await supabase
-      .from('tasks')
+      .from(TASKS)
       .select('*')
       .order('created_at', { ascending: true });
 
@@ -28,7 +28,7 @@ function TaskManager({ session }: { session: Session }) {
 
   const deleteTask = async (id: number) => {
     setError(null);
-    const { error } = await supabase.from('tasks').delete().eq('id', id);
+    const { error } = await supabase.from(TASKS).delete().eq('id', id);
 
     if (error) {
       setError(error.message);
@@ -40,7 +40,7 @@ function TaskManager({ session }: { session: Session }) {
   const updateTask = async (id: number) => {
     setError(null);
     const { error } = await supabase
-      .from('tasks')
+      .from(TASKS)
       .update({ description: newDescription })
       .eq('id', id);
 
@@ -80,7 +80,7 @@ function TaskManager({ session }: { session: Session }) {
     }
 
     const { error } = await supabase
-      .from('tasks')
+      .from(TASKS)
       .insert({ ...newTask, email: session.user.email!, image_url: imageUrl })
       .select()
       .single();
@@ -111,7 +111,7 @@ function TaskManager({ session }: { session: Session }) {
     // Handle INSERT
     channel.on(
       'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'tasks' },
+      { event: 'INSERT', schema: 'public', table: TASKS },
       (payload) => {
         const newTask = payload.new as Tasks;
         setTasks((prev) => [...prev, newTask]);
@@ -121,7 +121,7 @@ function TaskManager({ session }: { session: Session }) {
     // Handle DELETE
     channel.on(
       'postgres_changes',
-      { event: 'DELETE', schema: 'public', table: 'tasks' },
+      { event: 'DELETE', schema: 'public', table: TASKS },
       (payload) => {
         const deletedTask = payload.old as Tasks;
         setTasks((prev) => prev.filter((task) => task.id !== deletedTask.id));
@@ -131,7 +131,7 @@ function TaskManager({ session }: { session: Session }) {
     // Handle UPDATE
     channel.on(
       'postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'tasks' },
+      { event: 'UPDATE', schema: 'public', table: TASKS },
       (payload) => {
         const updatedTask = payload.new as Tasks;
         setTasks((prev) =>
@@ -141,7 +141,7 @@ function TaskManager({ session }: { session: Session }) {
     );
 
     channel.subscribe((status) => {
-      console.log('Subscription status:', status);
+      console.info('Subscription status:', status);
     });
 
     // Cleanup subscription on unmount
@@ -149,8 +149,6 @@ function TaskManager({ session }: { session: Session }) {
       supabase.removeChannel(channel);
     };
   }, []);
-
-  console.log(tasks);
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1rem' }}>

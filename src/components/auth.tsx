@@ -22,7 +22,6 @@ export const Auth = () => {
         return;
       } else {
         setIsSignUp(false);
-        console.log('i am here');
         setEmail('');
         setPassword('');
         setSuccessMessage(

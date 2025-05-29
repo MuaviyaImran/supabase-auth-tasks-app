@@ -211,5 +211,4 @@ export const Constants = {
   },
 } as const;
 
-export type Smoothies = Database['public']['Tables']['smoothies']['Row'];
 export type Tasks = Database['public']['Tables']['tasks']['Row'];
