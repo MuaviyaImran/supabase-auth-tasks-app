@@ -22,9 +22,27 @@ export default {
     project: ['./tsconfig.json', './tsconfig.node.json', './tsconfig.app.json'],
     tsconfigRootDir: __dirname,
   },
-}
+};
 ```
 
 - Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
 - Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
 - Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+
+## How to generate Supabase types
+
+### First Login to Supabase
+
+```
+npx supabase login
+```
+
+Now for generating types you need to run the following command
+
+```
+npx supabase gen types typescript --project-id <-project-id-value->
+> src/types/supabase.ts
+```
+
+- You will get your project ID value from supabase project settings
+- Make sure you have types folder inside src folder or you can specify your own path.
