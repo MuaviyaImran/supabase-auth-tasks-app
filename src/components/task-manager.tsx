@@ -1,25 +1,20 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { supabase } from '../supabase-client';
 import { Session } from '@supabase/supabase-js';
-import { TABLES, STORAGE_BUCKETS } from '../constants';
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  created_at: string;
-  image_url: string;
-}
+import { STORAGE_BUCKETS } from '../constants';
+
+import type { Tasks } from '../types/supabase';
 
 function TaskManager({ session }: { session: Session }) {
   const [newTask, setNewTask] = useState({ title: '', description: '' });
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Tasks[]>([]);
   const [newDescription, setNewDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [taskImage, setTaskImage] = useState<File | null>(null);
 
   const fetchTasks = async () => {
     const { error, data } = await supabase
-      .from(TABLES.TASKS)
+      .from('tasks')
       .select('*')
       .order('created_at', { ascending: true });
 
@@ -33,7 +28,7 @@ function TaskManager({ session }: { session: Session }) {
 
   const deleteTask = async (id: number) => {
     setError(null);
-    const { error } = await supabase.from(TABLES.TASKS).delete().eq('id', id);
+    const { error } = await supabase.from('tasks').delete().eq('id', id);
 
     if (error) {
       setError(error.message);
@@ -45,7 +40,7 @@ function TaskManager({ session }: { session: Session }) {
   const updateTask = async (id: number) => {
     setError(null);
     const { error } = await supabase
-      .from(TABLES.TASKS)
+      .from('tasks')
       .update({ description: newDescription })
       .eq('id', id);
 
@@ -76,7 +71,7 @@ function TaskManager({ session }: { session: Session }) {
     return data.publicUrl;
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     let imageUrl: string | null = null;
@@ -85,8 +80,8 @@ function TaskManager({ session }: { session: Session }) {
     }
 
     const { error } = await supabase
-      .from(TABLES.TASKS)
-      .insert({ ...newTask, email: session.user.email, image_url: imageUrl })
+      .from('tasks')
+      .insert({ ...newTask, email: session.user.email!, image_url: imageUrl })
       .select()
       .single();
 
@@ -118,7 +113,7 @@ function TaskManager({ session }: { session: Session }) {
       'postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'tasks' },
       (payload) => {
-        const newTask = payload.new as Task;
+        const newTask = payload.new as Tasks;
         setTasks((prev) => [...prev, newTask]);
       }
     );
@@ -128,7 +123,7 @@ function TaskManager({ session }: { session: Session }) {
       'postgres_changes',
       { event: 'DELETE', schema: 'public', table: 'tasks' },
       (payload) => {
-        const deletedTask = payload.old as Task;
+        const deletedTask = payload.old as Tasks;
         setTasks((prev) => prev.filter((task) => task.id !== deletedTask.id));
       }
     );
@@ -138,7 +133,7 @@ function TaskManager({ session }: { session: Session }) {
       'postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'tasks' },
       (payload) => {
-        const updatedTask = payload.new as Task;
+        const updatedTask = payload.new as Tasks;
         setTasks((prev) =>
           prev.map((task) => (task.id === updatedTask.id ? updatedTask : task))
         );
@@ -206,7 +201,7 @@ function TaskManager({ session }: { session: Session }) {
             <div>
               <h3>{task.title}</h3>
               <p>{task.description}</p>
-              <img src={task.image_url} style={{ height: 70 }} />
+              <img src={task.image_url!} style={{ height: 70 }} />
               <div
                 style={{
                   display: 'flex',

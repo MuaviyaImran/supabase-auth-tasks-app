@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
-import "./App.css";
-import { Auth } from "./components/auth";
-import TaskManager from "./components/task-manager";
-import { supabase } from "./supabase-client";
+import { useEffect, useState } from 'react';
+import './App.css';
+import { Auth } from './components/auth';
+import TaskManager from './components/task-manager';
+import { supabase } from './supabase-client';
+
+import type { Session } from '@supabase/supabase-js';
 
 function App() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
 
   const fetchSession = async () => {
     const currentSession = await supabase.auth.getSession();
